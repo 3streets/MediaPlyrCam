@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&family=VT323&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root{
     --accent:#e8489a; --accent-deep:#a8226a; --accent-light:#ffc6e4;
@@ -17,23 +16,62 @@
   html,body{height:100%;}
   body{
     font-family:'Tinos',serif;
-    background:
-      radial-gradient(circle at 20% 15%, rgba(255,255,255,.05), transparent 40%),
-      radial-gradient(circle at 80% 85%, rgba(232,72,154,.12), transparent 45%),
-      #07060a;
+    background:#07060a;
     color:#fff;min-height:100%;
     display:flex;flex-direction:column;align-items:center;
     padding:34px 16px 60px;gap:26px;overflow-x:hidden;
+    position:relative;
   }
+  /* glitchy animated background */
   body::before{
-    content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
-    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 3px);
-    mix-blend-mode:overlay;opacity:.45;
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(232,72,154,.18), transparent 42%),
+      radial-gradient(circle at 84% 88%, rgba(120,80,200,.16), transparent 46%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 2px, transparent 2px 4px),
+      #07060a;
+    animation:bgshift 9s steps(8) infinite;
   }
+  @keyframes bgshift{
+    0%,100%{transform:translate(0,0);}
+    25%{transform:translate(-2px,1px);}
+    50%{transform:translate(1px,-2px);}
+    75%{transform:translate(-1px,2px);}
+  }
+  /* page-wide scanline + flicker overlay */
+  body::after{
+    content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+    mix-blend-mode:overlay;opacity:.5;
+    animation:flick 5s steps(20) infinite;
+  }
+  @keyframes flick{
+    0%,96%,100%{opacity:.5;}
+    97%{opacity:.18;}
+    98%{opacity:.7;}
+    99%{opacity:.3;}
+  }
+  /* drifting glitch bar */
+  .glitchbar{
+    position:fixed;left:0;right:0;height:3px;z-index:9998;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(0,255,255,.5),rgba(255,0,128,.5),transparent);
+    mix-blend-mode:screen;opacity:.6;
+    animation:bardrop 7s linear infinite;
+  }
+  @keyframes bardrop{
+    0%{top:-3px;} 100%{top:100%;}
+  }
+
   .page-title{
     font-family:'VT323',monospace;font-size:30px;letter-spacing:2px;
     color:var(--accent-light);text-align:center;
-    text-shadow:1px 1px 0 var(--accent-deep);
+    text-shadow:2px 0 #ff2d8f, -2px 0 #00e5ff;
+    animation:rgbjit 4s steps(10) infinite;
+  }
+  @keyframes rgbjit{
+    0%,90%,100%{text-shadow:2px 0 #ff2d8f,-2px 0 #00e5ff;transform:translateX(0);}
+    92%{text-shadow:4px 0 #ff2d8f,-4px 0 #00e5ff;transform:translateX(-2px);}
+    94%{text-shadow:-3px 0 #ff2d8f,3px 0 #00e5ff;transform:translateX(2px);}
   }
   .page-title small{
     display:block;font-size:14px;letter-spacing:5px;color:#b98;
@@ -89,9 +127,9 @@
     position:absolute;inset:0;width:100%;height:100%;
     object-fit:cover;transform:scaleX(-1);
   }
-  canvas#snap{display:none;z-index:5;background:#000;}
+  canvas#snap{display:none;z-index:5;background:#000;transform:none;}
 
-  /* old-phone optical layers */
+  /* optical layers (live preview only) */
   .vignette{
     position:absolute;inset:0;pointer-events:none;z-index:3;
     background:radial-gradient(ellipse at 50% 45%, transparent 42%, rgba(20,8,4,.62) 100%);
@@ -109,26 +147,42 @@
     opacity:.3;mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   }
-  .softfocus{
-    position:absolute;inset:0;pointer-events:none;z-index:5;
-    backdrop-filter:blur(.6px);
+  /* screen scanlines for old-display look */
+  .scan{
+    position:absolute;inset:0;pointer-events:none;z-index:6;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.55;
   }
+  .flashglow{
+    position:absolute;inset:0;pointer-events:none;z-index:7;
+    background:radial-gradient(ellipse at 50% 38%, rgba(255,255,245,.55), transparent 55%);
+    opacity:0;transition:opacity .15s;
+  }
+  .flashglow.on{opacity:1;}
+  /* white flash burst when shooting */
+  .burst{
+    position:absolute;inset:0;z-index:20;background:#fff;
+    opacity:0;pointer-events:none;
+  }
+  .burst.fire{animation:burst .45s ease-out;}
+  @keyframes burst{0%{opacity:0;}12%{opacity:.95;}100%{opacity:0;}}
+
   .caption{
-    position:absolute;left:0;right:0;bottom:10px;z-index:7;text-align:center;
+    position:absolute;left:0;right:0;bottom:10px;z-index:8;text-align:center;
     font-family:'VT323',monospace;font-size:24px;letter-spacing:1px;
     color:#ffe9b8;padding:0 14px;
     text-shadow:1px 1px 0 rgba(0,0,0,.85);
   }
   .datestamp{
-    position:absolute;right:12px;bottom:10px;z-index:7;
+    position:absolute;right:12px;bottom:10px;z-index:8;
     font-family:'VT323',monospace;font-size:19px;
-    color:#ff9a3c;text-shadow:0 0 3px rgba(0,0,0,.7);
-    letter-spacing:1px;
+    color:#ff9a3c;letter-spacing:1px;
+    text-shadow:1px 1px 0 rgba(0,0,0,.7);
   }
   .recdot{
-    position:absolute;left:12px;top:10px;z-index:8;display:none;
+    position:absolute;left:12px;top:10px;z-index:9;display:none;
     font-family:'VT323',monospace;font-size:18px;color:#fff;
-    align-items:center;gap:6px;
+    align-items:center;gap:6px;text-shadow:1px 1px 0 #000;
   }
   .recdot.on{display:flex;}
   .recdot b{
@@ -229,15 +283,16 @@
 </style>
 </head>
 <body>
+  <div class="glitchbar"></div>
 
   <div class="page-title">
-    ★ Y2K MEDIA PLAYER CAM ★
+    &#9733; Y2K MEDIA PLAYER CAM &#9733;
     <small>now playing&nbsp;:&nbsp;you</small>
   </div>
 
   <div class="layout">
 
-    <!-- ===== PLAYER (this whole block gets captured) ===== -->
+    <!-- ===== PLAYER ===== -->
     <div class="player" id="player">
       <div class="titlebar">
         <div class="orb"></div>
@@ -252,10 +307,12 @@
         <div class="screen" id="screen">
           <video id="video" autoplay playsinline muted></video>
           <canvas id="snap"></canvas>
-          <div class="softfocus"></div>
-          <div class="vignette"></div>
-          <div class="leak" id="leak"></div>
-          <div class="grain" id="grain"></div>
+          <div class="vignette" id="vignetteEl"></div>
+          <div class="leak" id="leakEl"></div>
+          <div class="scan"></div>
+          <div class="grain" id="grainEl"></div>
+          <div class="flashglow" id="flashGlow"></div>
+          <div class="burst" id="burst"></div>
           <div class="recdot" id="recdot"><b></b>REC</div>
           <div class="caption" id="caption">say cheese</div>
           <div class="datestamp" id="datestamp"></div>
@@ -297,8 +354,14 @@
         </div>
 
         <div class="field">
-          <label>Film look</label>
+          <label>Camera model</label>
           <div class="effects" id="effects"></div>
+        </div>
+
+        <div class="field">
+          <label class="toggle-row"><input type="checkbox" id="flashTog"> &#9889; flash</label>
+          <label class="toggle-row" style="margin-top:6px"><input type="checkbox" id="leakTog" checked> light leaks</label>
+          <label class="toggle-row" style="margin-top:6px"><input type="checkbox" id="dateTog" checked> date stamp</label>
         </div>
 
         <div class="field">
@@ -318,18 +381,13 @@
           <input type="range" id="blurAmt" min="0" max="25" value="6">
         </div>
 
-        <div class="field">
-          <label class="toggle-row"><input type="checkbox" id="leakTog" checked> light leaks</label>
-          <label class="toggle-row" style="margin-top:6px"><input type="checkbox" id="dateTog" checked> date stamp</label>
-        </div>
-
         <button class="actbtn primary" id="shoot2">&#9733; TAKE PHOTO &#9733;</button>
         <div class="btn-row">
           <button class="actbtn" id="download">&#8595; save photo</button>
           <button class="actbtn" id="retake2">&#8634; retake</button>
         </div>
 
-        <p class="hint">Allow camera access when asked. Everything runs on your device &mdash; nothing is uploaded. Camera needs an https:// or localhost address to work.</p>
+        <p class="hint">Allow camera access when asked. Everything runs on your device. Camera needs an https:// or localhost address to work.</p>
       </div>
     </div>
 
@@ -337,50 +395,58 @@
 
 <script>
 (function(){
-  const video    = document.getElementById('video');
-  const snap     = document.getElementById('snap');
-  const ctx      = snap.getContext('2d');
-  const status   = document.getElementById('status');
-  const caption  = document.getElementById('caption');
-  const screen   = document.getElementById('screen');
-  const player   = document.getElementById('player');
-  const vignetteEl = document.querySelector('.vignette');
-  const grainEl  = document.getElementById('grain');
-  const leakEl   = document.getElementById('leak');
-  const softEl   = document.querySelector('.softfocus');
-  const datestamp= document.getElementById('datestamp');
-  const recdot   = document.getElementById('recdot');
-  const root     = document.documentElement;
+  const video=document.getElementById('video');
+  const snap=document.getElementById('snap');
+  const ctx=snap.getContext('2d');
+  const status=document.getElementById('status');
+  const caption=document.getElementById('caption');
+  const screen=document.getElementById('screen');
+  const player=document.getElementById('player');
+  const vignetteEl=document.getElementById('vignetteEl');
+  const grainEl=document.getElementById('grainEl');
+  const leakEl=document.getElementById('leakEl');
+  const flashGlow=document.getElementById('flashGlow');
+  const burst=document.getElementById('burst');
+  const datestamp=document.getElementById('datestamp');
+  const recdot=document.getElementById('recdot');
+  const winTitle=document.getElementById('winTitle');
+  const root=document.documentElement;
 
-  const fx = {
+  const fx={
     warmth:100, fade:45, grain:30, blur:0.6,
-    effect:'fadedfilm', leaks:true, date:true, captured:false
+    effect:'iphone6s', leaks:true, date:true, flash:false, captured:false
   };
 
-  /* --- old-school film looks. lower saturation, crushed-ish, warm casts.
-     these mimic real expired/cheap-camera film, not neon ig filters --- */
-  const presets = {
-    fadedfilm:  ()=>`saturate(${fx.warmth*0.78}%) contrast(88%) brightness(1.06) sepia(.22) hue-rotate(-6deg) blur(${fx.blur}px)`,
-    expired:    ()=>`saturate(${fx.warmth*0.62}%) contrast(82%) brightness(1.1) sepia(.4) hue-rotate(-18deg) blur(${fx.blur}px)`,
-    camcorder:  ()=>`saturate(${fx.warmth*1.05}%) contrast(108%) brightness(1.02) hue-rotate(4deg) blur(${fx.blur+0.4}px)`,
-    polaroid:   ()=>`saturate(${fx.warmth*0.7}%) contrast(80%) brightness(1.14) sepia(.18) blur(${fx.blur}px)`,
-    coolwash:   ()=>`saturate(${fx.warmth*0.72}%) contrast(86%) brightness(1.08) hue-rotate(170deg) sepia(.1) blur(${fx.blur}px)`,
-    sepia:      ()=>`grayscale(.3) sepia(.7) saturate(${fx.warmth*0.8}%) contrast(90%) brightness(1.05) blur(${fx.blur}px)`,
-    bw:         ()=>`grayscale(1) contrast(95%) brightness(1.08) blur(${fx.blur}px)`
+  /* --- camera-model looks --- each emulates a real device's image character --- */
+  const presets={
+    iphone6s: ()=>`saturate(${fx.warmth*1.1}%) contrast(102%) brightness(1.04) hue-rotate(-3deg) blur(${fx.blur}px)`,
+    nokia:    ()=>`saturate(${fx.warmth*0.85}%) contrast(120%) brightness(1.0) hue-rotate(8deg) blur(${fx.blur+0.6}px)`,
+    polaroid: ()=>`saturate(${fx.warmth*0.7}%) contrast(80%) brightness(1.14) sepia(.22) blur(${fx.blur}px)`,
+    camcorder:()=>`saturate(${fx.warmth*1.15}%) contrast(108%) brightness(1.02) hue-rotate(4deg) blur(${fx.blur+0.5}px)`,
+    disposable:()=>`saturate(${fx.warmth*0.78}%) contrast(90%) brightness(1.07) sepia(.3) hue-rotate(-10deg) blur(${fx.blur}px)`,
+    vhs:      ()=>`saturate(${fx.warmth*1.3}%) contrast(112%) brightness(1.0) hue-rotate(-6deg) blur(${fx.blur+0.8}px)`
+  };
+  // per-model extra character drawn onto canvas (and shown live via classes)
+  const modelTint={
+    iphone6s:null,
+    nokia:'rgba(120,140,90,0.12)',          // greenish cheap-sensor cast
+    polaroid:'rgba(255,225,180,0.14)',      // creamy
+    camcorder:'rgba(90,120,255,0.10)',      // cool video cast
+    disposable:'rgba(255,180,120,0.13)',    // warm flash-film
+    vhs:'rgba(255,80,160,0.10)'             // magenta bleed
   };
 
   function applyLook(){
-    const f=(presets[fx.effect]||presets.fadedfilm)();
+    const f=(presets[fx.effect]||presets.iphone6s)();
     video.style.filter=f;
-    snap.style.filter=f;
+    snap.style.filter='none';
     vignetteEl.style.opacity=(0.4+fx.fade/100*0.6).toFixed(2);
     grainEl.style.opacity=(fx.grain/100).toFixed(2);
     leakEl.style.display=fx.leaks?'block':'none';
-    datestamp.style.display=fx.date?'block':'none';
-    softEl.style.backdropFilter=`blur(${fx.blur}px)`;
+    datestamp.style.display=(fx.date && !fx.captured)?'block':'none';
+    flashGlow.classList.toggle('on',fx.flash);
   }
 
-  /* date stamp */
   function setDate(){
     const d=new Date();
     const mm=String(d.getMonth()+1).padStart(2,'0');
@@ -395,8 +461,7 @@
   async function startCam(){
     try{
       stream=await navigator.mediaDevices.getUserMedia({
-        video:{facingMode:'user',width:{ideal:1280},height:{ideal:960}},
-        audio:true
+        video:{facingMode:'user',width:{ideal:1280},height:{ideal:960}},audio:true
       });
       video.srcObject=stream;
       status.textContent='Ready  >  live';
@@ -407,124 +472,252 @@
   }
   startCam();
 
-  /* ---- TAKE PHOTO ---- draw video mirrored, then draw text NON-mirrored ---- */
+  /* paint the film/optical effects onto a given context */
+  function paintEffects(c,W,H){
+    // flash: blow out highlights, brighten center, harsh
+    if(fx.flash){
+      const fl=c.createRadialGradient(W/2,H*0.36,0, W/2,H*0.36,H*0.9);
+      fl.addColorStop(0,'rgba(255,255,250,0.55)');
+      fl.addColorStop(0.5,'rgba(255,255,250,0.15)');
+      fl.addColorStop(1,'rgba(255,255,250,0)');
+      c.fillStyle=fl; c.fillRect(0,0,W,H);
+      // hard falloff at edges (flash darkens corners fast)
+      const fd=c.createRadialGradient(W/2,H*0.4,H*0.3, W/2,H*0.4,H*0.95);
+      fd.addColorStop(0,'rgba(0,0,0,0)');
+      fd.addColorStop(1,'rgba(0,0,0,0.5)');
+      c.fillStyle=fd; c.fillRect(0,0,W,H);
+    }
+    // model tint
+    const tint=modelTint[fx.effect];
+    if(tint){ c.fillStyle=tint; c.fillRect(0,0,W,H); }
+    // vignette
+    const g=c.createRadialGradient(W/2,H*0.45,H*0.2, W/2,H*0.45,H*0.85);
+    g.addColorStop(0,'rgba(0,0,0,0)');
+    g.addColorStop(1,`rgba(20,8,4,${(0.4+fx.fade/100*0.45).toFixed(2)})`);
+    c.fillStyle=g; c.fillRect(0,0,W,H);
+    // light leaks
+    if(fx.leaks){
+      const l1=c.createRadialGradient(W*0.9,H*0.12,0, W*0.9,H*0.12,W*0.4);
+      l1.addColorStop(0,'rgba(255,170,90,0.45)'); l1.addColorStop(1,'rgba(255,170,90,0)');
+      c.fillStyle=l1; c.fillRect(0,0,W,H);
+      const l2=c.createRadialGradient(W*0.08,H*0.95,0, W*0.08,H*0.95,W*0.45);
+      l2.addColorStop(0,'rgba(255,90,140,0.35)'); l2.addColorStop(1,'rgba(255,90,140,0)');
+      c.fillStyle=l2; c.fillRect(0,0,W,H);
+    }
+    // scanlines
+    c.fillStyle='rgba(0,0,0,0.16)';
+    for(let y=0;y<H;y+=3){ c.fillRect(0,y,W,1); }
+  }
+
+  /* glitch: RGB channel split on a strip + a few displaced blocks */
+  function paintGlitch(c,W,H){
+    const img=c.getImageData(0,0,W,H);
+    // RGB shift band
+    const bandY=Math.random()*H*0.7|0, bandH=(H*0.04+Math.random()*H*0.06)|0;
+    const shift=4+Math.random()*10|0;
+    const band=c.getImageData(0,bandY,W,bandH);
+    const bd=band.data;
+    for(let y=0;y<bandH;y++){
+      for(let x=W-1;x>=0;x--){
+        const i=(y*W+x)*4, src=(y*W+Math.max(0,x-shift))*4;
+        bd[i]=bd[src]; // red shifted
+      }
+    }
+    c.putImageData(band,0,bandY);
+    // a couple displaced slices
+    for(let k=0;k<3;k++){
+      const sy=Math.random()*H*0.85|0, sh=(2+Math.random()*8)|0;
+      const dx=(Math.random()*30-15)|0;
+      const slice=c.getImageData(0,sy,W,sh);
+      c.putImageData(slice,dx,sy);
+    }
+  }
+
+  /* render film grain via pixels */
+  function paintGrain(c,W,H){
+    if(fx.grain<=0)return;
+    const amt=fx.grain/100;
+    const id=c.getImageData(0,0,W,H), d=id.data;
+    for(let i=0;i<d.length;i+=4){
+      const n=(Math.random()-0.5)*120*amt;
+      d[i]+=n; d[i+1]+=n; d[i+2]+=n;
+    }
+    c.putImageData(id,0,0);
+  }
+
+  /* ---- TAKE PHOTO : draw to snap canvas, captioned & non-mirrored ---- */
   function renderPhoto(){
     snap.width=video.videoWidth||1280;
     snap.height=video.videoHeight||960;
-    const W=snap.width, H=snap.height;
-
-    // 1. mirrored video frame with film filter
+    const W=snap.width,H=snap.height;
     ctx.save();
     ctx.translate(W,0); ctx.scale(-1,1);
-    ctx.filter=(presets[fx.effect]||presets.fadedfilm)();
+    ctx.filter=(presets[fx.effect]||presets.iphone6s)();
     ctx.drawImage(video,0,0,W,H);
     ctx.restore();
     ctx.filter='none';
-
-    // 2. vignette
-    const g=ctx.createRadialGradient(W/2,H*0.45,H*0.2, W/2,H*0.45,H*0.85);
-    g.addColorStop(0,'rgba(0,0,0,0)');
-    g.addColorStop(1,`rgba(20,8,4,${(0.4+fx.fade/100*0.45).toFixed(2)})`);
-    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-
-    // 3. light leaks
-    if(fx.leaks){
-      const l1=ctx.createRadialGradient(W*0.9,H*0.12,0, W*0.9,H*0.12,W*0.4);
-      l1.addColorStop(0,'rgba(255,170,90,0.45)'); l1.addColorStop(1,'rgba(255,170,90,0)');
-      ctx.fillStyle=l1; ctx.fillRect(0,0,W,H);
-      const l2=ctx.createRadialGradient(W*0.08,H*0.95,0, W*0.08,H*0.95,W*0.45);
-      l2.addColorStop(0,'rgba(255,90,140,0.35)'); l2.addColorStop(1,'rgba(255,90,140,0)');
-      ctx.fillStyle=l2; ctx.fillRect(0,0,W,H);
-    }
-
-    // 4. film grain
-    if(fx.grain>0){
-      const amt=fx.grain/100;
-      const id=ctx.getImageData(0,0,W,H), d=id.data;
-      for(let i=0;i<d.length;i+=4){
-        const n=(Math.random()-0.5)*120*amt;
-        d[i]+=n; d[i+1]+=n; d[i+2]+=n;
-      }
-      ctx.putImageData(id,0,0);
-    }
-
-    // 5. caption  (NOT mirrored - drawn after restore, reads correctly)
+    paintEffects(ctx,W,H);
+    paintGrain(ctx,W,H);
+    paintGlitch(ctx,W,H);
+    // caption (correct orientation - drawn last on un-mirrored canvas)
     if(caption.textContent.trim()){
       ctx.font=`${Math.round(W/17)}px monospace`;
       ctx.textAlign='center';
       ctx.fillStyle='#ffe9b8';
       ctx.shadowColor='rgba(0,0,0,.85)';
-      ctx.shadowOffsetX=2; ctx.shadowOffsetY=2; ctx.shadowBlur=0;
-      ctx.fillText(caption.textContent, W/2, H-H/20);
+      ctx.shadowOffsetX=2; ctx.shadowOffsetY=2;
+      ctx.fillText(caption.textContent,W/2,H-H/20);
       ctx.shadowColor='transparent'; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
     }
-
-    // 6. date stamp
     if(fx.date){
       ctx.font=`${Math.round(W/26)}px monospace`;
       ctx.textAlign='right';
       ctx.fillStyle='#ff9a3c';
-      ctx.fillText(datestamp.textContent, W-W/30, H-H/20);
+      ctx.fillText(datestamp.textContent,W-W/30,H-H/20);
     }
+  }
+
+  function showCaptured(on){
+    // hide live overlays so they don't double up over the frozen canvas
+    [vignetteEl,leakEl,grainEl,flashGlow,document.querySelector('.scan'),
+     caption,datestamp].forEach(el=>{
+       el.style.visibility=on?'hidden':'visible';
+    });
+    if(!on){ applyLook(); } // restores datestamp display rule etc
   }
 
   function takePhoto(){
     if(!video.videoWidth){status.textContent='Camera not ready...';return;}
+    burst.classList.remove('fire'); void burst.offsetWidth;
+    if(fx.flash) burst.classList.add('fire');
     renderPhoto();
     snap.style.display='block';
-    snap.style.transform='none';        // already drawn correctly, don't re-mirror
-    snap.style.filter='none';
+    showCaptured(true);
     fx.captured=true;
     status.textContent='Photo captured  -  press save';
   }
   function retake(){
     snap.style.display='none';
-    snap.style.transform='scaleX(-1)';
+    showCaptured(false);
     fx.captured=false;
     status.textContent='Ready  >  live';
   }
 
-  /* ---- DOWNLOAD: capture the FULL window frame via html2canvas ---- */
-  async function download(){
+  /* ---- DOWNLOAD : composite the WHOLE window onto one canvas ---- */
+  function download(){
     if(!fx.captured) takePhoto();
-    status.textContent='Rendering frame...';
-    try{
-      const canvas=await html2canvas(player,{
-        backgroundColor:null, scale:2, useCORS:true, logging:false
-      });
-      const a=document.createElement('a');
-      a.download='y2k-cam-'+Date.now()+'.png';
-      a.href=canvas.toDataURL('image/png');
-      a.click();
-      status.textContent='Saved with frame  <3';
-    }catch(e){
-      // fallback: just the photo
-      const a=document.createElement('a');
-      a.download='y2k-cam-'+Date.now()+'.png';
-      a.href=snap.toDataURL('image/png');
-      a.click();
-      status.textContent='Saved (photo only)';
+    status.textContent='Building frame...';
+    const SCALE=2;
+    const cw=screen.clientWidth;          // screen pixel width on page
+    const titleH=34, menuH=26, padTop=10, statusH=27, transportH=78, sidePad=12;
+    const frameW=cw + sidePad*2;
+    const frameH=titleH+menuH+padTop+screen.clientHeight+statusH+transportH;
+    const out=document.createElement('canvas');
+    out.width=frameW*SCALE; out.height=frameH*SCALE;
+    const o=out.getContext('2d');
+    o.scale(SCALE,SCALE);
+
+    const cs=getComputedStyle(root);
+    const accent=cs.getPropertyValue('--accent').trim()||'#e8489a';
+    const accentDeep=cs.getPropertyValue('--accent-deep').trim()||'#a8226a';
+    const accentLight=cs.getPropertyValue('--accent-light').trim()||'#ffc6e4';
+    const chrome=cs.getPropertyValue('--chrome').trim()||'#ffe3f1';
+
+    // window background
+    o.fillStyle=chrome; o.fillRect(0,0,frameW,frameH);
+
+    // titlebar
+    let grad=o.createLinearGradient(0,0,0,titleH);
+    grad.addColorStop(0,accentLight); grad.addColorStop(.4,accent); grad.addColorStop(1,accentDeep);
+    o.fillStyle=grad; o.fillRect(0,0,frameW,titleH);
+    o.fillStyle='#fff7fb';
+    o.font='bold 17px Tinos, serif';
+    o.textAlign='left'; o.textBaseline='middle';
+    o.fillText(winTitle.textContent,34,titleH/2);
+    // orb
+    o.beginPath(); o.arc(17,titleH/2,8,0,7); o.fillStyle='#fff'; o.fill();
+    // window buttons
+    for(let i=0;i<3;i++){
+      o.fillStyle='#fff';
+      o.fillRect(frameW-12-(3-i)*25,titleH/2-9,21,18);
     }
+
+    // menubar
+    o.fillStyle='#fff'; o.fillRect(0,titleH,frameW,menuH);
+    o.fillStyle='#3a0d24'; o.font='14px Tinos, serif';
+    let mx=12; ['File','View','Play','Tools','Help'].forEach(m=>{
+      o.fillText(m,mx,titleH+menuH/2); mx+=o.measureText(m).width+18;
+    });
+
+    // screen area background
+    const screenY=titleH+menuH+padTop;
+    o.fillStyle='#000';
+    o.fillRect(sidePad,screenY,cw,screen.clientHeight);
+    // the captured photo, scaled to fit the screen box
+    o.drawImage(snap,sidePad,screenY,cw,screen.clientHeight);
+
+    // statusbar
+    const statusY=screenY+screen.clientHeight;
+    o.fillStyle='#000'; o.fillRect(0,statusY,frameW,statusH);
+    o.fillStyle=accentLight; o.font='16px VT323, monospace';
+    o.textAlign='left';
+    o.fillText('Photo captured  -  saved <3',12,statusY+statusH/2);
+
+    // transport bar
+    const transY=statusY+statusH;
+    let tg=o.createLinearGradient(0,transY,0,transY+transportH);
+    tg.addColorStop(0,chrome); tg.addColorStop(1,accentLight);
+    o.fillStyle=tg; o.fillRect(0,transY,frameW,transportH);
+    // play orb
+    o.beginPath(); o.arc(39,transY+38,26,0,7);
+    o.fillStyle='#fff'; o.fill();
+    o.strokeStyle=accentDeep; o.lineWidth=2; o.stroke();
+    o.fillStyle=accentDeep; o.beginPath();
+    o.moveTo(32,transY+28); o.lineTo(32,transY+48); o.lineTo(50,transY+38); o.fill();
+    // seek bar
+    o.fillStyle=accentDeep;
+    o.fillRect(110,transY+33,frameW-130,10);
+
+    const a=document.createElement('a');
+    a.download='y2k-cam-'+Date.now()+'.png';
+    a.href=out.toDataURL('image/png');
+    a.click();
+    status.textContent='Saved with frame  <3';
   }
 
-  /* ---- VIDEO RECORDING ---- */
-  let recorder=null, chunks=[], recording=false;
+  /* ---- VIDEO RECORDING (filter baked via canvas stream) ---- */
+  let recorder=null,chunks=[],recording=false,rafId=null;
   const recordBtn=document.getElementById('record');
 
   function startRec(){
     if(!stream){status.textContent='No camera stream';return;}
+    const rec=document.createElement('canvas');
+    rec.width=video.videoWidth||1280; rec.height=video.videoHeight||960;
+    const rc=rec.getContext('2d');
+    function draw(){
+      rc.save();
+      rc.translate(rec.width,0); rc.scale(-1,1);
+      rc.filter=(presets[fx.effect]||presets.iphone6s)();
+      rc.drawImage(video,0,0,rec.width,rec.height);
+      rc.restore(); rc.filter='none';
+      paintEffects(rc,rec.width,rec.height);
+      if(Math.random()<0.12) paintGlitch(rc,rec.width,rec.height);
+      rafId=requestAnimationFrame(draw);
+    }
+    draw();
+    const vs=rec.captureStream(30);
+    const at=stream.getAudioTracks()[0];
+    if(at) vs.addTrack(at);
     chunks=[];
-    let mime='video/webm;codecs=vp9';
-    if(!MediaRecorder.isTypeSupported(mime)) mime='video/webm';
-    try{ recorder=new MediaRecorder(stream,{mimeType:mime}); }
-    catch(e){ status.textContent='Recording not supported here'; return; }
+    try{ recorder=new MediaRecorder(vs,{mimeType:'video/webm'}); }
+    catch(e){ status.textContent='Recording not supported'; cancelAnimationFrame(rafId); return; }
     recorder.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
     recorder.onstop=()=>{
+      cancelAnimationFrame(rafId);
       const blob=new Blob(chunks,{type:'video/webm'});
       const a=document.createElement('a');
       a.download='y2k-cam-'+Date.now()+'.webm';
-      a.href=URL.createObjectURL(blob);
-      a.click();
+      a.href=URL.createObjectURL(blob); a.click();
       status.textContent='Video saved  <3';
     };
     recorder.start();
@@ -534,76 +727,23 @@
     status.textContent='Recording...  (tap red dot to stop)';
   }
   function stopRec(){
-    if(recorder && recording){
-      recorder.stop();
-      recording=false;
+    if(recorder&&recording){
+      recorder.stop(); recording=false;
       recordBtn.classList.remove('recording');
       recdot.classList.remove('on');
     }
   }
   recordBtn.onclick=()=> recording?stopRec():startRec();
 
-  /* note: the recorded .webm is the raw camera feed. the pink frame +
-     film filter are a visual layer; browsers can't bake CSS into a
-     video stream client-side. the saved video keeps the warm filter
-     baked via canvas below. */
-
-  /* --- recording WITH the filter baked in, using a canvas stream --- */
-  let rafId=null;
-  function startRecFiltered(){
-    if(!stream){status.textContent='No camera stream';return;}
-    const rec=document.createElement('canvas');
-    rec.width=video.videoWidth||1280; rec.height=video.videoHeight||960;
-    const rctx=rec.getContext('2d');
-    function draw(){
-      rctx.save();
-      rctx.translate(rec.width,0); rctx.scale(-1,1);
-      rctx.filter=(presets[fx.effect]||presets.fadedfilm)();
-      rctx.drawImage(video,0,0,rec.width,rec.height);
-      rctx.restore();
-      rctx.filter='none';
-      const g=rctx.createRadialGradient(rec.width/2,rec.height*0.45,rec.height*0.2,
-                                        rec.width/2,rec.height*0.45,rec.height*0.85);
-      g.addColorStop(0,'rgba(0,0,0,0)');
-      g.addColorStop(1,`rgba(20,8,4,${(0.4+fx.fade/100*0.45).toFixed(2)})`);
-      rctx.fillStyle=g; rctx.fillRect(0,0,rec.width,rec.height);
-      rafId=requestAnimationFrame(draw);
-    }
-    draw();
-    const vstream=rec.captureStream(30);
-    const atrack=stream.getAudioTracks()[0];
-    if(atrack) vstream.addTrack(atrack);
-    chunks=[];
-    let mime='video/webm';
-    try{ recorder=new MediaRecorder(vstream,{mimeType:mime}); }
-    catch(e){ status.textContent='Recording not supported'; cancelAnimationFrame(rafId); return; }
-    recorder.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
-    recorder.onstop=()=>{
-      cancelAnimationFrame(rafId);
-      const blob=new Blob(chunks,{type:'video/webm'});
-      const a=document.createElement('a');
-      a.download='y2k-cam-'+Date.now()+'.webm';
-      a.href=URL.createObjectURL(blob);
-      a.click();
-      status.textContent='Filtered video saved  <3';
-    };
-    recorder.start();
-    recording=true;
-    recordBtn.classList.add('recording');
-    recdot.classList.add('on');
-    status.textContent='Recording...  (tap red dot to stop)';
-  }
-  recordBtn.onclick=()=> recording?stopRec():startRecFiltered();
-
-  /* control wiring */
-  document.getElementById('shoot').onclick   = takePhoto;
-  document.getElementById('shoot2').onclick  = takePhoto;
-  document.getElementById('retake').onclick  = retake;
-  document.getElementById('retake2').onclick = retake;
-  document.getElementById('download').onclick= download;
+  /* wiring */
+  document.getElementById('shoot').onclick=takePhoto;
+  document.getElementById('shoot2').onclick=takePhoto;
+  document.getElementById('retake').onclick=retake;
+  document.getElementById('retake2').onclick=retake;
+  document.getElementById('download').onclick=download;
 
   document.getElementById('titleInput').oninput=e=>{
-    document.getElementById('winTitle').textContent=e.target.value||' ';
+    winTitle.textContent=e.target.value||' ';
   };
   document.getElementById('captionInput').oninput=e=>{
     caption.textContent=e.target.value;
@@ -612,7 +752,7 @@
   function bindSlider(id,key,fmt,labelId){
     const el=document.getElementById(id);
     el.oninput=()=>{
-      fx[key]=key==='blur'? (+el.value/10):+el.value;
+      fx[key]=key==='blur'?(+el.value/10):+el.value;
       document.getElementById(labelId).textContent=fmt(el.value);
       applyLook();
     };
@@ -622,13 +762,14 @@
   bindSlider('grainAmt','grain',v=>v+'%','grainVal');
   bindSlider('blurAmt','blur',v=>(v/10).toFixed(1)+'px','blurVal');
 
+  document.getElementById('flashTog').onchange=e=>{fx.flash=e.target.checked;applyLook();};
   document.getElementById('leakTog').onchange=e=>{fx.leaks=e.target.checked;applyLook();};
   document.getElementById('dateTog').onchange=e=>{fx.date=e.target.checked;applyLook();};
 
-  /* film look chips */
+  /* camera model chips */
   const effectList=[
-    ['fadedfilm','faded film'],['expired','expired'],['polaroid','polaroid'],
-    ['camcorder','camcorder'],['coolwash','cool wash'],['sepia','sepia'],['bw','b&w']
+    ['iphone6s','iPhone 6s'],['nokia','Nokia'],['polaroid','Polaroid'],
+    ['camcorder','Camcorder'],['disposable','Disposable'],['vhs','VHS']
   ];
   const effectsBox=document.getElementById('effects');
   effectList.forEach(([key,label])=>{
