@@ -6,23 +6,19 @@
 <title>Y2K Media Player Cam</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,700&family=VT323&family=Press+Start+2P&family=Pacifico&family=Courier+Prime:wght@700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root{
     --accent:#e8489a; --accent-deep:#a8226a; --accent-light:#ffc6e4;
-    --chrome:#ffe3f1; --glass:#ffd0e6; --ink:#3a0d24; --titlebar-text:#fff7fb;
+    --chrome:#f4d4e4; --glass:#ffd0e6; --ink:#3a0d24; --titlebar-text:#fff7fb;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
   body{
-    font-family:'Tinos',serif;
-    background:#07060a;
-    color:#fff;min-height:100%;
+    font-family:'Tinos',serif;background:#07060a;color:#fff;min-height:100%;
     display:flex;flex-direction:column;align-items:center;
-    padding:34px 16px 60px;gap:26px;overflow-x:hidden;
-    position:relative;
+    padding:34px 16px 60px;gap:26px;overflow-x:hidden;position:relative;
   }
-  /* glitchy animated background */
   body::before{
     content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
     background:
@@ -38,34 +34,21 @@
     50%{transform:translate(1px,-2px);}
     75%{transform:translate(-1px,2px);}
   }
-  /* page-wide scanline + flicker overlay */
   body::after{
     content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
-    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
-    mix-blend-mode:overlay;opacity:.5;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.13) 0 1px, transparent 1px 3px);
+    mix-blend-mode:overlay;opacity:.45;
     animation:flick 5s steps(20) infinite;
   }
   @keyframes flick{
-    0%,96%,100%{opacity:.5;}
-    97%{opacity:.18;}
-    98%{opacity:.7;}
-    99%{opacity:.3;}
-  }
-  /* drifting glitch bar */
-  .glitchbar{
-    position:fixed;left:0;right:0;height:3px;z-index:9998;pointer-events:none;
-    background:linear-gradient(90deg,transparent,rgba(0,255,255,.5),rgba(255,0,128,.5),transparent);
-    mix-blend-mode:screen;opacity:.6;
-    animation:bardrop 7s linear infinite;
-  }
-  @keyframes bardrop{
-    0%{top:-3px;} 100%{top:100%;}
+    0%,96%,100%{opacity:.45;}
+    97%{opacity:.15;}98%{opacity:.62;}99%{opacity:.28;}
   }
 
   .page-title{
     font-family:'VT323',monospace;font-size:30px;letter-spacing:2px;
     color:var(--accent-light);text-align:center;
-    text-shadow:2px 0 #ff2d8f, -2px 0 #00e5ff;
+    text-shadow:2px 0 #ff2d8f,-2px 0 #00e5ff;
     animation:rgbjit 4s steps(10) infinite;
   }
   @keyframes rgbjit{
@@ -82,46 +65,70 @@
     align-items:flex-start;width:100%;max-width:980px;
   }
 
-  /* ---------- player window ---------- */
+  /* ====== PLAYER WINDOW - closer to real WMP ====== */
   .player{
     width:430px;max-width:94vw;
-    border:2px solid var(--accent-deep);border-radius:9px 9px 5px 5px;
+    border:1px solid #7a1850;border-radius:8px 8px 0 0;
     background:var(--chrome);
-    box-shadow:0 0 0 1px rgba(255,255,255,.35) inset,
+    box-shadow:0 0 0 1px rgba(255,255,255,.4) inset,
                0 24px 60px -16px rgba(0,0,0,.8);
     overflow:hidden;
   }
+  /* glossy XP-style titlebar: highlight strip on top, rounded */
   .titlebar{
-    display:flex;align-items:center;gap:8px;padding:6px 8px;
-    background:linear-gradient(180deg,var(--accent-light) 0%,var(--accent) 38%,var(--accent-deep) 100%);
+    position:relative;display:flex;align-items:center;gap:7px;
+    height:30px;padding:0 6px 0 7px;
+    background:
+      linear-gradient(180deg,
+        rgba(255,255,255,.85) 0%,
+        var(--accent-light) 9%,
+        var(--accent) 48%,
+        var(--accent-deep) 92%,
+        var(--accent) 100%);
     border-bottom:1px solid var(--accent-deep);
   }
+  .titlebar::after{ /* top gloss highlight */
+    content:"";position:absolute;left:0;right:0;top:0;height:9px;
+    background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,0));
+    pointer-events:none;
+  }
   .titlebar .orb{
-    width:18px;height:18px;border-radius:50%;flex:none;
-    background:radial-gradient(circle at 35% 30%,#fff,var(--accent-light) 40%,var(--accent-deep));
+    width:16px;height:16px;border-radius:50%;flex:none;z-index:1;
+    background:radial-gradient(circle at 34% 30%,#fff,#9fe6ff 38%,#0a84c8 88%);
+    box-shadow:0 0 3px rgba(255,255,255,.8);
   }
   .titlebar .title{
-    font-family:'Tinos',serif;font-weight:700;font-size:18px;
-    color:var(--titlebar-text);text-shadow:0 1px 2px rgba(0,0,0,.4);
+    font-family:'Tahoma','Tinos',sans-serif;font-weight:700;font-size:13px;
+    color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);z-index:1;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;
   }
-  .winbtns{display:flex;gap:4px;}
+  .winbtns{display:flex;gap:3px;z-index:1;}
   .winbtns span{
-    width:21px;height:19px;border:1px solid rgba(255,255,255,.7);border-radius:3px;
-    background:linear-gradient(180deg,#fff,var(--glass));
+    width:22px;height:21px;border:1px solid #fff;border-radius:4px;
+    background:linear-gradient(180deg,#fff 0%,var(--accent-light) 55%,var(--accent) 100%);
     display:flex;align-items:center;justify-content:center;
-    font-family:'VT323',monospace;font-size:14px;color:var(--accent-deep);
+    font-family:'Tahoma',sans-serif;font-size:11px;font-weight:700;color:var(--accent-deep);
+    box-shadow:0 1px 1px rgba(0,0,0,.25);
+  }
+  .winbtns span.x{
+    background:linear-gradient(180deg,#fff 0%,#ff9ec6 55%,var(--accent-deep) 100%);
   }
   .menubar{
-    display:flex;gap:18px;padding:4px 12px;
-    background:linear-gradient(180deg,#fff,var(--chrome));
-    border-bottom:1px solid var(--accent-light);
-    font-size:15px;color:var(--ink);
+    display:flex;gap:2px;padding:2px 6px;
+    background:linear-gradient(180deg,#ffffff,var(--chrome));
+    border-bottom:1px solid rgba(168,34,106,.4);
+    font-family:'Tahoma','Tinos',sans-serif;font-size:12px;color:var(--ink);
   }
-  .screen-wrap{padding:10px 10px 0;background:linear-gradient(180deg,var(--accent-light),var(--chrome));}
+  .menubar span{padding:2px 8px;border-radius:3px;}
+  .menubar span:hover{background:var(--accent);color:#fff;}
+
+  /* the video display area with inset bevel like WMP */
+  .screen-wrap{padding:8px 8px 0;background:linear-gradient(180deg,var(--accent-light),var(--chrome));}
   .screen{
-    position:relative;width:100%;aspect-ratio:4/3.4;
-    background:#000;border:2px solid var(--accent-deep);overflow:hidden;
+    position:relative;width:100%;aspect-ratio:4/3.3;
+    background:#000;overflow:hidden;
+    border:1px solid #5a0f38;
+    box-shadow:0 0 0 2px var(--accent-deep), inset 0 0 14px rgba(0,0,0,.9);
   }
   video,canvas#snap{
     position:absolute;inset:0;width:100%;height:100%;
@@ -129,7 +136,6 @@
   }
   canvas#snap{display:none;z-index:5;background:#000;transform:none;}
 
-  /* optical layers (live preview only) */
   .vignette{
     position:absolute;inset:0;pointer-events:none;z-index:3;
     background:radial-gradient(ellipse at 50% 45%, transparent 42%, rgba(20,8,4,.62) 100%);
@@ -142,42 +148,33 @@
       radial-gradient(circle at 90% 12%, rgba(255,170,90,.55), transparent 32%),
       radial-gradient(circle at 8% 95%, rgba(255,90,140,.4), transparent 38%);
   }
+  /* flash bloom shown live above video */
+  .flashglow{
+    position:absolute;inset:0;pointer-events:none;z-index:5;opacity:0;
+    transition:opacity .15s;
+    background:
+      radial-gradient(ellipse at 50% 36%, rgba(255,255,248,.6), transparent 52%),
+      radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(0,0,0,.5) 100%);
+  }
+  .flashglow.on{opacity:1;}
   .grain{
     position:absolute;inset:0;pointer-events:none;z-index:6;
     opacity:.3;mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   }
-  /* screen scanlines for old-display look */
   .scan{
     position:absolute;inset:0;pointer-events:none;z-index:6;
-    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px);
-    mix-blend-mode:multiply;opacity:.55;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.2) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;
   }
-  .flashglow{
-    position:absolute;inset:0;pointer-events:none;z-index:7;
-    background:radial-gradient(ellipse at 50% 38%, rgba(255,255,245,.55), transparent 55%);
-    opacity:0;transition:opacity .15s;
-  }
-  .flashglow.on{opacity:1;}
-  /* white flash burst when shooting */
-  .burst{
-    position:absolute;inset:0;z-index:20;background:#fff;
-    opacity:0;pointer-events:none;
-  }
-  .burst.fire{animation:burst .45s ease-out;}
-  @keyframes burst{0%{opacity:0;}12%{opacity:.95;}100%{opacity:0;}}
+  .burst{position:absolute;inset:0;z-index:20;background:#fff;opacity:0;pointer-events:none;}
+  .burst.fire{animation:burst .5s ease-out;}
+  @keyframes burst{0%{opacity:0;}10%{opacity:1;}100%{opacity:0;}}
 
   .caption{
-    position:absolute;left:0;right:0;bottom:10px;z-index:8;text-align:center;
-    font-family:'VT323',monospace;font-size:24px;letter-spacing:1px;
-    color:#ffe9b8;padding:0 14px;
-    text-shadow:1px 1px 0 rgba(0,0,0,.85);
-  }
-  .datestamp{
-    position:absolute;right:12px;bottom:10px;z-index:8;
-    font-family:'VT323',monospace;font-size:19px;
-    color:#ff9a3c;letter-spacing:1px;
-    text-shadow:1px 1px 0 rgba(0,0,0,.7);
+    position:absolute;left:0;right:0;bottom:14px;z-index:8;text-align:center;
+    font-size:26px;letter-spacing:1px;color:#ffe9b8;padding:0 14px;
+    text-shadow:2px 2px 0 rgba(0,0,0,.85);
   }
   .recdot{
     position:absolute;left:12px;top:10px;z-index:9;display:none;
@@ -185,45 +182,47 @@
     align-items:center;gap:6px;text-shadow:1px 1px 0 #000;
   }
   .recdot.on{display:flex;}
-  .recdot b{
-    width:11px;height:11px;border-radius:50%;background:#ff2d2d;
-    animation:blink 1s steps(1) infinite;
-  }
+  .recdot b{width:11px;height:11px;border-radius:50%;background:#ff2d2d;
+    animation:blink 1s steps(1) infinite;}
   @keyframes blink{50%{opacity:0;}}
 
+  /* WMP-style status row */
   .statusbar{
-    padding:4px 12px;background:#000;color:var(--accent-light);
-    font-family:'VT323',monospace;font-size:18px;letter-spacing:1px;
+    padding:3px 10px;background:#1a0010;color:var(--accent-light);
+    font-family:'Tahoma',monospace;font-size:12px;letter-spacing:.5px;
     border-top:1px solid var(--accent-deep);
   }
+  /* transport - rounded inset console like WMP */
   .transport{
-    display:flex;align-items:center;gap:9px;padding:10px 12px 14px;
-    background:linear-gradient(180deg,var(--chrome),var(--accent-light));
+    display:flex;align-items:center;gap:9px;padding:9px 12px 13px;
+    background:linear-gradient(180deg,#ffffff,var(--accent-light) 40%,var(--accent) 100%);
   }
   .tbtn{
     border:1px solid var(--accent-deep);border-radius:50%;
-    background:radial-gradient(circle at 35% 30%,#fff,var(--glass) 55%,var(--accent));
+    background:radial-gradient(circle at 34% 28%,#fff,var(--glass) 52%,var(--accent));
     color:var(--accent-deep);cursor:pointer;
     display:flex;align-items:center;justify-content:center;
-    transition:transform .08s;box-shadow:0 2px 5px rgba(0,0,0,.3);
+    transition:transform .08s;
+    box-shadow:0 2px 4px rgba(0,0,0,.35),inset 0 1px 2px rgba(255,255,255,.9);
   }
   .tbtn:active{transform:scale(.92);}
-  .tbtn.big{width:54px;height:54px;font-size:22px;}
-  .tbtn.sm{width:34px;height:34px;font-size:14px;}
-  .tbtn.rec{width:42px;height:42px;font-size:16px;color:#c00;}
-  .tbtn.rec.recording{background:radial-gradient(circle at 35% 30%,#ff8a8a,#ff2d2d);color:#fff;}
+  .tbtn.big{width:50px;height:50px;font-size:20px;}
+  .tbtn.sm{width:32px;height:32px;font-size:13px;}
+  .tbtn.rec{width:40px;height:40px;font-size:15px;color:#c00;}
+  .tbtn.rec.recording{background:radial-gradient(circle at 34% 28%,#ff8a8a,#ff2d2d);color:#fff;}
   .seek{
-    flex:1;height:10px;border-radius:6px;
+    flex:1;height:9px;border-radius:5px;
     background:linear-gradient(180deg,var(--accent-deep),var(--accent));
     border:1px solid #fff;position:relative;
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.4);
   }
   .seek::after{
-    content:"";position:absolute;top:-4px;left:30%;width:10px;height:18px;
+    content:"";position:absolute;top:-5px;left:30%;width:9px;height:18px;
     border-radius:3px;background:linear-gradient(180deg,#fff,var(--glass));
     border:1px solid var(--accent-deep);
   }
 
-  /* ---------- panel ---------- */
+  /* ====== PANEL ====== */
   .panel{
     width:300px;max-width:94vw;border:2px solid var(--accent-deep);
     border-radius:9px;background:var(--chrome);color:var(--ink);
@@ -232,20 +231,21 @@
   .panel h2{
     font-family:'VT323',monospace;font-size:20px;letter-spacing:1px;
     background:linear-gradient(180deg,var(--accent),var(--accent-deep));
-    color:var(--titlebar-text);padding:7px 12px;
-    text-shadow:0 1px 2px rgba(0,0,0,.4);
+    color:var(--titlebar-text);padding:7px 12px;text-shadow:0 1px 2px rgba(0,0,0,.4);
   }
-  .panel .body{padding:14px 14px 18px;display:flex;flex-direction:column;gap:15px;}
+  .panel .body{padding:14px 14px 18px;display:flex;flex-direction:column;gap:14px;}
   .field label{
     display:block;font-size:13px;font-weight:700;text-transform:uppercase;
     letter-spacing:1px;color:var(--accent-deep);margin-bottom:5px;
   }
-  .field input[type=text]{
+  .field input[type=text],.field select{
     width:100%;padding:7px 9px;border:1px solid var(--accent-deep);
     border-radius:4px;background:#fff;font-family:'Tinos',serif;
     font-size:15px;color:var(--ink);
   }
   .field input[type=range]{width:100%;accent-color:var(--accent);}
+  .inline2{display:flex;gap:8px;}
+  .inline2>div{flex:1;}
   .swatches{display:flex;gap:8px;flex-wrap:wrap;}
   .swatch{
     width:30px;height:30px;border-radius:50%;cursor:pointer;
@@ -276,14 +276,13 @@
   .btn-row{display:flex;gap:8px;}
   .btn-row .actbtn{font-size:15px;}
   .hint{font-size:11px;color:#9a4a72;line-height:1.4;}
+  .swatch.cap{width:26px;height:26px;}
   @media(max-width:560px){
     .page-title{font-size:24px;}
-    .menubar{gap:11px;font-size:13px;}
   }
 </style>
 </head>
 <body>
-  <div class="glitchbar"></div>
 
   <div class="page-title">
     &#9733; Y2K MEDIA PLAYER CAM &#9733;
@@ -297,7 +296,7 @@
       <div class="titlebar">
         <div class="orb"></div>
         <div class="title" id="winTitle">Windows Media Player</div>
-        <div class="winbtns"><span>_</span><span>&#9634;</span><span>&#10005;</span></div>
+        <div class="winbtns"><span>&#8211;</span><span>&#9633;</span><span class="x">&#10005;</span></div>
       </div>
       <div class="menubar">
         <span>File</span><span>View</span><span>Play</span><span>Tools</span><span>Help</span>
@@ -309,13 +308,12 @@
           <canvas id="snap"></canvas>
           <div class="vignette" id="vignetteEl"></div>
           <div class="leak" id="leakEl"></div>
-          <div class="scan"></div>
-          <div class="grain" id="grainEl"></div>
           <div class="flashglow" id="flashGlow"></div>
+          <div class="scan" id="scanEl"></div>
+          <div class="grain" id="grainEl"></div>
           <div class="burst" id="burst"></div>
           <div class="recdot" id="recdot"><b></b>REC</div>
           <div class="caption" id="caption">say cheese</div>
-          <div class="datestamp" id="datestamp"></div>
         </div>
       </div>
 
@@ -339,9 +337,35 @@
           <label>Window title</label>
           <input type="text" id="titleInput" value="Windows Media Player" maxlength="40">
         </div>
+
         <div class="field">
           <label>Caption text</label>
           <input type="text" id="captionInput" value="say cheese" maxlength="40">
+        </div>
+        <div class="inline2">
+          <div class="field">
+            <label>Caption font</label>
+            <select id="capFont">
+              <option value="'VT323',monospace">Pixel</option>
+              <option value="'Press Start 2P',monospace">Arcade</option>
+              <option value="'Pacifico',cursive">Script</option>
+              <option value="'Bebas Neue',sans-serif">Bold</option>
+              <option value="'Courier Prime',monospace">Typewriter</option>
+              <option value="'Tinos',serif">Serif</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Size <span id="capSizeVal" style="float:right">26</span></label>
+            <input type="range" id="capSize" min="14" max="52" value="26">
+          </div>
+        </div>
+        <div class="field">
+          <label>Caption color</label>
+          <div class="swatches" id="capSwatches"></div>
+          <div class="custom-color" style="margin-top:6px">
+            <input type="color" id="capColor" value="#ffe9b8">
+            <span class="hint">pick any caption color</span>
+          </div>
         </div>
 
         <div class="field">
@@ -361,7 +385,6 @@
         <div class="field">
           <label class="toggle-row"><input type="checkbox" id="flashTog"> &#9889; flash</label>
           <label class="toggle-row" style="margin-top:6px"><input type="checkbox" id="leakTog" checked> light leaks</label>
-          <label class="toggle-row" style="margin-top:6px"><input type="checkbox" id="dateTog" checked> date stamp</label>
         </div>
 
         <div class="field">
@@ -405,19 +428,19 @@
   const vignetteEl=document.getElementById('vignetteEl');
   const grainEl=document.getElementById('grainEl');
   const leakEl=document.getElementById('leakEl');
+  const scanEl=document.getElementById('scanEl');
   const flashGlow=document.getElementById('flashGlow');
   const burst=document.getElementById('burst');
-  const datestamp=document.getElementById('datestamp');
   const recdot=document.getElementById('recdot');
   const winTitle=document.getElementById('winTitle');
   const root=document.documentElement;
 
   const fx={
     warmth:100, fade:45, grain:30, blur:0.6,
-    effect:'iphone6s', leaks:true, date:true, flash:false, captured:false
+    effect:'iphone6s', leaks:true, flash:false, captured:false,
+    capFont:"'VT323',monospace", capSize:26, capColor:'#ffe9b8'
   };
 
-  /* --- camera-model looks --- each emulates a real device's image character --- */
   const presets={
     iphone6s: ()=>`saturate(${fx.warmth*1.1}%) contrast(102%) brightness(1.04) hue-rotate(-3deg) blur(${fx.blur}px)`,
     nokia:    ()=>`saturate(${fx.warmth*0.85}%) contrast(120%) brightness(1.0) hue-rotate(8deg) blur(${fx.blur+0.6}px)`,
@@ -426,16 +449,14 @@
     disposable:()=>`saturate(${fx.warmth*0.78}%) contrast(90%) brightness(1.07) sepia(.3) hue-rotate(-10deg) blur(${fx.blur}px)`,
     vhs:      ()=>`saturate(${fx.warmth*1.3}%) contrast(112%) brightness(1.0) hue-rotate(-6deg) blur(${fx.blur+0.8}px)`
   };
-  // per-model extra character drawn onto canvas (and shown live via classes)
   const modelTint={
-    iphone6s:null,
-    nokia:'rgba(120,140,90,0.12)',          // greenish cheap-sensor cast
-    polaroid:'rgba(255,225,180,0.14)',      // creamy
-    camcorder:'rgba(90,120,255,0.10)',      // cool video cast
-    disposable:'rgba(255,180,120,0.13)',    // warm flash-film
-    vhs:'rgba(255,80,160,0.10)'             // magenta bleed
+    iphone6s:null, nokia:'rgba(120,140,90,0.12)', polaroid:'rgba(255,225,180,0.14)',
+    camcorder:'rgba(90,120,255,0.10)', disposable:'rgba(255,180,120,0.13)', vhs:'rgba(255,80,160,0.10)'
   };
 
+  function capCss(){
+    return `${fx.capSize}px ${fx.capFont}`;
+  }
   function applyLook(){
     const f=(presets[fx.effect]||presets.iphone6s)();
     video.style.filter=f;
@@ -443,18 +464,10 @@
     vignetteEl.style.opacity=(0.4+fx.fade/100*0.6).toFixed(2);
     grainEl.style.opacity=(fx.grain/100).toFixed(2);
     leakEl.style.display=fx.leaks?'block':'none';
-    datestamp.style.display=(fx.date && !fx.captured)?'block':'none';
     flashGlow.classList.toggle('on',fx.flash);
+    caption.style.font=capCss();
+    caption.style.color=fx.capColor;
   }
-
-  function setDate(){
-    const d=new Date();
-    const mm=String(d.getMonth()+1).padStart(2,'0');
-    const dd=String(d.getDate()).padStart(2,'0');
-    const yy=String(d.getFullYear()).slice(2);
-    datestamp.textContent="'"+yy+" "+mm+" "+dd;
-  }
-  setDate();
 
   /* camera */
   let stream=null;
@@ -464,7 +477,7 @@
         video:{facingMode:'user',width:{ideal:1280},height:{ideal:960}},audio:true
       });
       video.srcObject=stream;
-      status.textContent='Ready  >  live';
+      status.textContent='Ready  -  live';
     }catch(err){
       status.textContent='No camera - check permissions';
       caption.textContent='camera access needed';
@@ -472,30 +485,41 @@
   }
   startCam();
 
-  /* paint the film/optical effects onto a given context */
-  function paintEffects(c,W,H){
-    // flash: blow out highlights, brighten center, harsh
-    if(fx.flash){
-      const fl=c.createRadialGradient(W/2,H*0.36,0, W/2,H*0.36,H*0.9);
-      fl.addColorStop(0,'rgba(255,255,250,0.55)');
-      fl.addColorStop(0.5,'rgba(255,255,250,0.15)');
-      fl.addColorStop(1,'rgba(255,255,250,0)');
-      c.fillStyle=fl; c.fillRect(0,0,W,H);
-      // hard falloff at edges (flash darkens corners fast)
-      const fd=c.createRadialGradient(W/2,H*0.4,H*0.3, W/2,H*0.4,H*0.95);
-      fd.addColorStop(0,'rgba(0,0,0,0)');
-      fd.addColorStop(1,'rgba(0,0,0,0.5)');
-      c.fillStyle=fd; c.fillRect(0,0,W,H);
+  /* ---- FLASH: real pixel processing - blow highlights, lift, harsh ---- */
+  function applyFlash(c,W,H){
+    // 1. pixel-level: push brights toward white, add overall lift, boost contrast
+    const id=c.getImageData(0,0,W,H), d=id.data;
+    for(let i=0;i<d.length;i+=4){
+      for(let k=0;k<3;k++){
+        let v=d[i+k];
+        v=v*1.28+26;                       // exposure lift
+        const lum=v/255;
+        v+=(lum*lum)*70;                   // highlight bloom toward white
+        v=(v-128)*1.12+128;                // harsh contrast
+        d[i+k]=v<0?0:v>255?255:v;
+      }
     }
-    // model tint
+    c.putImageData(id,0,0);
+    // 2. bright bloom from flash position
+    const fl=c.createRadialGradient(W/2,H*0.34,0, W/2,H*0.34,H*0.95);
+    fl.addColorStop(0,'rgba(255,255,250,0.5)');
+    fl.addColorStop(0.45,'rgba(255,255,250,0.12)');
+    fl.addColorStop(1,'rgba(255,255,250,0)');
+    c.fillStyle=fl; c.fillRect(0,0,W,H);
+    // 3. hard dark corner falloff (flash can't reach the edges)
+    const fd=c.createRadialGradient(W/2,H*0.38,H*0.28, W/2,H*0.38,H*1.0);
+    fd.addColorStop(0,'rgba(0,0,0,0)');
+    fd.addColorStop(1,'rgba(0,0,0,0.6)');
+    c.fillStyle=fd; c.fillRect(0,0,W,H);
+  }
+
+  function paintEffects(c,W,H){
     const tint=modelTint[fx.effect];
     if(tint){ c.fillStyle=tint; c.fillRect(0,0,W,H); }
-    // vignette
     const g=c.createRadialGradient(W/2,H*0.45,H*0.2, W/2,H*0.45,H*0.85);
     g.addColorStop(0,'rgba(0,0,0,0)');
     g.addColorStop(1,`rgba(20,8,4,${(0.4+fx.fade/100*0.45).toFixed(2)})`);
     c.fillStyle=g; c.fillRect(0,0,W,H);
-    // light leaks
     if(fx.leaks){
       const l1=c.createRadialGradient(W*0.9,H*0.12,0, W*0.9,H*0.12,W*0.4);
       l1.addColorStop(0,'rgba(255,170,90,0.45)'); l1.addColorStop(1,'rgba(255,170,90,0)');
@@ -504,36 +528,9 @@
       l2.addColorStop(0,'rgba(255,90,140,0.35)'); l2.addColorStop(1,'rgba(255,90,140,0)');
       c.fillStyle=l2; c.fillRect(0,0,W,H);
     }
-    // scanlines
-    c.fillStyle='rgba(0,0,0,0.16)';
+    c.fillStyle='rgba(0,0,0,0.15)';
     for(let y=0;y<H;y+=3){ c.fillRect(0,y,W,1); }
   }
-
-  /* glitch: RGB channel split on a strip + a few displaced blocks */
-  function paintGlitch(c,W,H){
-    const img=c.getImageData(0,0,W,H);
-    // RGB shift band
-    const bandY=Math.random()*H*0.7|0, bandH=(H*0.04+Math.random()*H*0.06)|0;
-    const shift=4+Math.random()*10|0;
-    const band=c.getImageData(0,bandY,W,bandH);
-    const bd=band.data;
-    for(let y=0;y<bandH;y++){
-      for(let x=W-1;x>=0;x--){
-        const i=(y*W+x)*4, src=(y*W+Math.max(0,x-shift))*4;
-        bd[i]=bd[src]; // red shifted
-      }
-    }
-    c.putImageData(band,0,bandY);
-    // a couple displaced slices
-    for(let k=0;k<3;k++){
-      const sy=Math.random()*H*0.85|0, sh=(2+Math.random()*8)|0;
-      const dx=(Math.random()*30-15)|0;
-      const slice=c.getImageData(0,sy,W,sh);
-      c.putImageData(slice,dx,sy);
-    }
-  }
-
-  /* render film grain via pixels */
   function paintGrain(c,W,H){
     if(fx.grain<=0)return;
     const amt=fx.grain/100;
@@ -545,7 +542,19 @@
     c.putImageData(id,0,0);
   }
 
-  /* ---- TAKE PHOTO : draw to snap canvas, captioned & non-mirrored ---- */
+  function drawCaption(c,W,H){
+    if(!caption.textContent.trim())return;
+    const px=Math.round(fx.capSize/26 * (W/17));
+    c.font=`${px}px ${fx.capFont}`;
+    c.textAlign='center'; c.textBaseline='alphabetic';
+    c.fillStyle=fx.capColor;
+    c.shadowColor='rgba(0,0,0,.85)';
+    c.shadowOffsetX=px*0.07; c.shadowOffsetY=px*0.07;
+    c.fillText(caption.textContent,W/2,H-H/16);
+    c.shadowColor='transparent'; c.shadowOffsetX=0; c.shadowOffsetY=0;
+  }
+
+  /* ---- TAKE PHOTO ---- */
   function renderPhoto(){
     snap.width=video.videoWidth||1280;
     snap.height=video.videoHeight||960;
@@ -556,36 +565,18 @@
     ctx.drawImage(video,0,0,W,H);
     ctx.restore();
     ctx.filter='none';
+    // FLASH applied right after the frame, before other layers, so it shows
+    if(fx.flash) applyFlash(ctx,W,H);
     paintEffects(ctx,W,H);
     paintGrain(ctx,W,H);
-    paintGlitch(ctx,W,H);
-    // caption (correct orientation - drawn last on un-mirrored canvas)
-    if(caption.textContent.trim()){
-      ctx.font=`${Math.round(W/17)}px monospace`;
-      ctx.textAlign='center';
-      ctx.fillStyle='#ffe9b8';
-      ctx.shadowColor='rgba(0,0,0,.85)';
-      ctx.shadowOffsetX=2; ctx.shadowOffsetY=2;
-      ctx.fillText(caption.textContent,W/2,H-H/20);
-      ctx.shadowColor='transparent'; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
-    }
-    if(fx.date){
-      ctx.font=`${Math.round(W/26)}px monospace`;
-      ctx.textAlign='right';
-      ctx.fillStyle='#ff9a3c';
-      ctx.fillText(datestamp.textContent,W-W/30,H-H/20);
-    }
+    drawCaption(ctx,W,H);
   }
-
   function showCaptured(on){
-    // hide live overlays so they don't double up over the frozen canvas
-    [vignetteEl,leakEl,grainEl,flashGlow,document.querySelector('.scan'),
-     caption,datestamp].forEach(el=>{
-       el.style.visibility=on?'hidden':'visible';
+    [vignetteEl,leakEl,grainEl,scanEl,flashGlow,caption].forEach(el=>{
+      el.style.visibility=on?'hidden':'visible';
     });
-    if(!on){ applyLook(); } // restores datestamp display rule etc
+    if(!on) applyLook();
   }
-
   function takePhoto(){
     if(!video.videoWidth){status.textContent='Camera not ready...';return;}
     burst.classList.remove('fire'); void burst.offsetWidth;
@@ -600,17 +591,17 @@
     snap.style.display='none';
     showCaptured(false);
     fx.captured=false;
-    status.textContent='Ready  >  live';
+    status.textContent='Ready  -  live';
   }
 
-  /* ---- DOWNLOAD : composite the WHOLE window onto one canvas ---- */
+  /* ---- DOWNLOAD : composite whole WMP window ---- */
   function download(){
     if(!fx.captured) takePhoto();
     status.textContent='Building frame...';
     const SCALE=2;
-    const cw=screen.clientWidth;          // screen pixel width on page
-    const titleH=34, menuH=26, padTop=10, statusH=27, transportH=78, sidePad=12;
-    const frameW=cw + sidePad*2;
+    const cw=screen.clientWidth;
+    const titleH=30,menuH=24,padTop=8,statusH=22,transportH=68,sidePad=8;
+    const frameW=cw+sidePad*2;
     const frameH=titleH+menuH+padTop+screen.clientHeight+statusH+transportH;
     const out=document.createElement('canvas');
     out.width=frameW*SCALE; out.height=frameH*SCALE;
@@ -621,62 +612,67 @@
     const accent=cs.getPropertyValue('--accent').trim()||'#e8489a';
     const accentDeep=cs.getPropertyValue('--accent-deep').trim()||'#a8226a';
     const accentLight=cs.getPropertyValue('--accent-light').trim()||'#ffc6e4';
-    const chrome=cs.getPropertyValue('--chrome').trim()||'#ffe3f1';
+    const chrome=cs.getPropertyValue('--chrome').trim()||'#f4d4e4';
 
-    // window background
     o.fillStyle=chrome; o.fillRect(0,0,frameW,frameH);
 
-    // titlebar
+    // glossy titlebar
     let grad=o.createLinearGradient(0,0,0,titleH);
-    grad.addColorStop(0,accentLight); grad.addColorStop(.4,accent); grad.addColorStop(1,accentDeep);
+    grad.addColorStop(0,'#ffffff'); grad.addColorStop(.09,accentLight);
+    grad.addColorStop(.48,accent); grad.addColorStop(1,accentDeep);
     o.fillStyle=grad; o.fillRect(0,0,frameW,titleH);
-    o.fillStyle='#fff7fb';
-    o.font='bold 17px Tinos, serif';
-    o.textAlign='left'; o.textBaseline='middle';
-    o.fillText(winTitle.textContent,34,titleH/2);
+    let gloss=o.createLinearGradient(0,0,0,9);
+    gloss.addColorStop(0,'rgba(255,255,255,.7)'); gloss.addColorStop(1,'rgba(255,255,255,0)');
+    o.fillStyle=gloss; o.fillRect(0,0,frameW,9);
     // orb
-    o.beginPath(); o.arc(17,titleH/2,8,0,7); o.fillStyle='#fff'; o.fill();
+    o.beginPath(); o.arc(15,titleH/2,8,0,7);
+    o.fillStyle='#9fe6ff'; o.fill();
+    o.beginPath(); o.arc(13,titleH/2-2,3,0,7); o.fillStyle='#fff'; o.fill();
+    // title
+    o.fillStyle='#fff'; o.font='bold 13px Tahoma, sans-serif';
+    o.textAlign='left'; o.textBaseline='middle';
+    o.fillText(winTitle.textContent,30,titleH/2+1);
     // window buttons
+    ['#8211;','x'].forEach(()=>{});
     for(let i=0;i<3;i++){
+      const bx=frameW-7-(3-i)*25;
       o.fillStyle='#fff';
-      o.fillRect(frameW-12-(3-i)*25,titleH/2-9,21,18);
+      o.fillRect(bx,titleH/2-10,22,21);
     }
 
     // menubar
-    o.fillStyle='#fff'; o.fillRect(0,titleH,frameW,menuH);
-    o.fillStyle='#3a0d24'; o.font='14px Tinos, serif';
+    o.fillStyle='#ffffff'; o.fillRect(0,titleH,frameW,menuH);
+    o.fillStyle='#3a0d24'; o.font='12px Tahoma, sans-serif';
+    o.textBaseline='middle';
     let mx=12; ['File','View','Play','Tools','Help'].forEach(m=>{
-      o.fillText(m,mx,titleH+menuH/2); mx+=o.measureText(m).width+18;
+      o.fillText(m,mx,titleH+menuH/2); mx+=o.measureText(m).width+16;
     });
 
-    // screen area background
+    // screen
     const screenY=titleH+menuH+padTop;
-    o.fillStyle='#000';
-    o.fillRect(sidePad,screenY,cw,screen.clientHeight);
-    // the captured photo, scaled to fit the screen box
+    o.fillStyle=accentDeep; o.fillRect(sidePad-2,screenY-2,cw+4,screen.clientHeight+4);
+    o.fillStyle='#000'; o.fillRect(sidePad,screenY,cw,screen.clientHeight);
     o.drawImage(snap,sidePad,screenY,cw,screen.clientHeight);
 
     // statusbar
     const statusY=screenY+screen.clientHeight;
-    o.fillStyle='#000'; o.fillRect(0,statusY,frameW,statusH);
-    o.fillStyle=accentLight; o.font='16px VT323, monospace';
-    o.textAlign='left';
-    o.fillText('Photo captured  -  saved <3',12,statusY+statusH/2);
+    o.fillStyle='#1a0010'; o.fillRect(0,statusY,frameW,statusH);
+    o.fillStyle=accentLight; o.font='12px Tahoma, monospace';
+    o.textAlign='left'; o.textBaseline='middle';
+    o.fillText('Ready',12,statusY+statusH/2);
 
-    // transport bar
+    // transport
     const transY=statusY+statusH;
     let tg=o.createLinearGradient(0,transY,0,transY+transportH);
-    tg.addColorStop(0,chrome); tg.addColorStop(1,accentLight);
+    tg.addColorStop(0,'#ffffff'); tg.addColorStop(.4,accentLight); tg.addColorStop(1,accent);
     o.fillStyle=tg; o.fillRect(0,transY,frameW,transportH);
-    // play orb
-    o.beginPath(); o.arc(39,transY+38,26,0,7);
+    o.beginPath(); o.arc(37,transY+34,24,0,7);
     o.fillStyle='#fff'; o.fill();
-    o.strokeStyle=accentDeep; o.lineWidth=2; o.stroke();
+    o.strokeStyle=accentDeep; o.lineWidth=1.5; o.stroke();
     o.fillStyle=accentDeep; o.beginPath();
-    o.moveTo(32,transY+28); o.lineTo(32,transY+48); o.lineTo(50,transY+38); o.fill();
-    // seek bar
+    o.moveTo(30,transY+25); o.lineTo(30,transY+43); o.lineTo(47,transY+34); o.fill();
     o.fillStyle=accentDeep;
-    o.fillRect(110,transY+33,frameW-130,10);
+    o.fillRect(105,transY+30,frameW-125,9);
 
     const a=document.createElement('a');
     a.download='y2k-cam-'+Date.now()+'.png';
@@ -685,10 +681,9 @@
     status.textContent='Saved with frame  <3';
   }
 
-  /* ---- VIDEO RECORDING (filter baked via canvas stream) ---- */
+  /* ---- VIDEO RECORDING ---- */
   let recorder=null,chunks=[],recording=false,rafId=null;
   const recordBtn=document.getElementById('record');
-
   function startRec(){
     if(!stream){status.textContent='No camera stream';return;}
     const rec=document.createElement('canvas');
@@ -700,8 +695,8 @@
       rc.filter=(presets[fx.effect]||presets.iphone6s)();
       rc.drawImage(video,0,0,rec.width,rec.height);
       rc.restore(); rc.filter='none';
+      if(fx.flash) applyFlash(rc,rec.width,rec.height);
       paintEffects(rc,rec.width,rec.height);
-      if(Math.random()<0.12) paintGlitch(rc,rec.width,rec.height);
       rafId=requestAnimationFrame(draw);
     }
     draw();
@@ -749,6 +744,37 @@
     caption.textContent=e.target.value;
   };
 
+  /* caption font / size / color */
+  document.getElementById('capFont').onchange=e=>{
+    fx.capFont=e.target.value; applyLook();
+  };
+  const capSize=document.getElementById('capSize');
+  capSize.oninput=()=>{
+    fx.capSize=+capSize.value;
+    document.getElementById('capSizeVal').textContent=capSize.value;
+    applyLook();
+  };
+  const capColors=['#ffe9b8','#ffffff','#ff5d8f','#ff2d2d','#ffd400','#7cf8ff','#9b5de5','#000000'];
+  const capSwBox=document.getElementById('capSwatches');
+  capColors.forEach((hex,i)=>{
+    const s=document.createElement('div');
+    s.className='swatch cap'+(i===0?' active':'');
+    s.style.background=hex;
+    s.onclick=()=>{
+      fx.capColor=hex;
+      document.getElementById('capColor').value=hex;
+      [...capSwBox.children].forEach(x=>x.classList.remove('active'));
+      s.classList.add('active');
+      applyLook();
+    };
+    capSwBox.appendChild(s);
+  });
+  document.getElementById('capColor').oninput=e=>{
+    fx.capColor=e.target.value;
+    [...capSwBox.children].forEach(x=>x.classList.remove('active'));
+    applyLook();
+  };
+
   function bindSlider(id,key,fmt,labelId){
     const el=document.getElementById(id);
     el.oninput=()=>{
@@ -764,7 +790,6 @@
 
   document.getElementById('flashTog').onchange=e=>{fx.flash=e.target.checked;applyLook();};
   document.getElementById('leakTog').onchange=e=>{fx.leaks=e.target.checked;applyLook();};
-  document.getElementById('dateTog').onchange=e=>{fx.date=e.target.checked;applyLook();};
 
   /* camera model chips */
   const effectList=[
@@ -793,7 +818,7 @@
     root.style.setProperty('--accent',hex);
     root.style.setProperty('--accent-deep',`rgb(${Math.round(r*.6)},${Math.round(g*.6)},${Math.round(b*.6)})`);
     root.style.setProperty('--accent-light',`rgb(${mix(r,255)},${mix(g,255)},${mix(b,255)})`);
-    root.style.setProperty('--chrome',`rgb(${Math.round(r+(255-r)*.82)},${Math.round(g+(255-g)*.82)},${Math.round(b+(255-b)*.82)})`);
+    root.style.setProperty('--chrome',`rgb(${Math.round(r+(255-r)*.85)},${Math.round(g+(255-g)*.85)},${Math.round(b+(255-b)*.85)})`);
     root.style.setProperty('--glass',`rgb(${mix(r,255)},${mix(g,255)},${mix(b,255)})`);
   }
   const swatchColors=['#e8489a','#9b5de5','#00bbf9','#43c59e','#ff8c42','#ff5d8f','#3a3a55'];
