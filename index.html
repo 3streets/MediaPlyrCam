@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Y2K Media Player Cam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* user-tunable theme */
+    --accent: #e8489a;
+    --accent-deep: #a8226a;
+    --accent-light: #ffc6e4;
+    --chrome: #ffe3f1;
+    --glass: #ffd0e6;
+    --ink: #3a0d24;
+    --titlebar-text: #fff7fb;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  html,body{height:100%;}
+  body{
+    font-family:'Tinos', serif;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,.06), transparent 40%),
+      radial-gradient(circle at 80% 85%, rgba(232,72,154,.18), transparent 45%),
+      #07060a;
+    color:#fff;
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:34px 16px 60px;
+    gap:26px;
+    overflow-x:hidden;
+  }
+
+  /* faint scanline / grain wash over the whole page */
+  body::before{
+    content:"";
+    position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+
+  .page-title{
+    font-family:'VT323', monospace;
+    font-size:30px;
+    letter-spacing:2px;
+    color:var(--accent-light);
+    text-shadow:0 0 14px var(--accent);
+    text-align:center;
+  }
+  .page-title small{
+    display:block;
+    font-size:14px;
+    letter-spacing:5px;
+    color:#b98;
+    text-shadow:none;
+    margin-top:2px;
+  }
+
+  .layout{
+    display:flex;
+    gap:26px;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:flex-start;
+    width:100%;
+    max-width:980px;
+  }
+
+  /* ---------- the media player window ---------- */
+  .player{
+    width:430px;
+    max-width:94vw;
+    border:2px solid var(--accent-deep);
+    border-radius:9px 9px 5px 5px;
+    background:var(--chrome);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.4) inset,
+      0 24px 60px -12px rgba(0,0,0,.85),
+      0 0 90px -30px var(--accent);
+    overflow:hidden;
+  }
+
+  .titlebar{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 8px;
+    background:linear-gradient(180deg, var(--accent-light) 0%, var(--accent) 38%, var(--accent-deep) 100%);
+    border-bottom:1px solid var(--accent-deep);
+  }
+  .titlebar .orb{
+    width:18px;height:18px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--accent-light) 40%, var(--accent-deep));
+    box-shadow:0 0 6px rgba(255,255,255,.7);
+    flex:none;
+  }
+  .titlebar .title{
+    font-family:'Tinos',serif;font-weight:700;font-size:18px;
+    color:var(--titlebar-text);
+    text-shadow:0 1px 2px rgba(0,0,0,.45);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    flex:1;
+  }
+  .winbtns{display:flex;gap:4px;}
+  .winbtns span{
+    width:21px;height:19px;border:1px solid rgba(255,255,255,.7);
+    border-radius:3px;
+    background:linear-gradient(180deg,#fff,var(--glass));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'VT323',monospace;font-size:14px;color:var(--accent-deep);
+  }
+
+  .menubar{
+    display:flex;gap:18px;
+    padding:4px 12px;
+    background:linear-gradient(180deg,#fff,var(--chrome));
+    border-bottom:1px solid var(--accent-light);
+    font-size:15px;color:var(--ink);
+  }
+  .menubar span u{text-underline-offset:2px;}
+
+  .screen-wrap{
+    padding:10px 10px 0;
+    background:linear-gradient(180deg,var(--accent-light),var(--chrome));
+  }
+
+  .screen{
+    position:relative;
+    width:100%;
+    aspect-ratio:4/3.4;
+    background:#000;
+    border:2px solid var(--accent-deep);
+    overflow:hidden;
+  }
+
+  video,canvas#snap{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    object-fit:cover;
+    transform:scaleX(-1); /* mirror like a selfie cam */
+  }
+  canvas#snap{display:none;z-index:5;background:#000;}
+
+  /* the live filter overlay sits above video */
+  .filter-overlay{
+    position:absolute;inset:0;pointer-events:none;z-index:3;
+    background:
+      radial-gradient(ellipse at 50% 42%, transparent 48%, rgba(0,0,0,.55) 100%);
+    mix-blend-mode:multiply;
+  }
+  .grain{
+    position:absolute;inset:0;pointer-events:none;z-index:4;
+    opacity:.18;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  .caption{
+    position:absolute;left:0;right:0;bottom:8px;z-index:6;
+    text-align:center;
+    font-family:'VT323',monospace;
+    font-size:24px;letter-spacing:1px;
+    color:#fff;
+    text-shadow:0 0 8px var(--accent), 0 2px 3px rgba(0,0,0,.8);
+    padding:0 14px;
+  }
+
+  .statusbar{
+    padding:4px 12px;
+    background:#000;
+    color:var(--accent-light);
+    font-family:'VT323',monospace;font-size:18px;
+    letter-spacing:1px;
+    border-top:1px solid var(--accent-deep);
+  }
+
+  /* transport controls */
+  .transport{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px 14px;
+    background:linear-gradient(180deg,var(--chrome),var(--accent-light));
+  }
+  .tbtn{
+    border:1px solid var(--accent-deep);
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff,var(--glass) 55%,var(--accent));
+    color:var(--accent-deep);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .08s, box-shadow .15s;
+    box-shadow:0 2px 5px rgba(0,0,0,.3);
+  }
+  .tbtn:hover{box-shadow:0 0 12px var(--accent);}
+  .tbtn:active{transform:scale(.92);}
+  .tbtn.big{width:54px;height:54px;font-size:22px;}
+  .tbtn.sm{width:34px;height:34px;font-size:14px;}
+  .seek{
+    flex:1;height:10px;border-radius:6px;
+    background:linear-gradient(180deg,var(--accent-deep),var(--accent));
+    border:1px solid #fff;position:relative;
+  }
+  .seek::after{
+    content:"";position:absolute;top:-4px;left:30%;
+    width:10px;height:18px;border-radius:3px;
+    background:linear-gradient(180deg,#fff,var(--glass));
+    border:1px solid var(--accent-deep);
+  }
+
+  /* ---------- control panel ---------- */
+  .panel{
+    width:300px;max-width:94vw;
+    border:2px solid var(--accent-deep);
+    border-radius:9px;
+    background:var(--chrome);
+    color:var(--ink);
+    box-shadow:0 18px 50px -16px rgba(0,0,0,.8);
+    overflow:hidden;
+  }
+  .panel h2{
+    font-family:'VT323',monospace;font-size:20px;letter-spacing:1px;
+    background:linear-gradient(180deg,var(--accent),var(--accent-deep));
+    color:var(--titlebar-text);
+    padding:7px 12px;
+    text-shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+  .panel .body{padding:14px 14px 18px;display:flex;flex-direction:column;gap:16px;}
+
+  .field label{
+    display:block;font-size:13px;font-weight:700;
+    text-transform:uppercase;letter-spacing:1px;
+    color:var(--accent-deep);margin-bottom:5px;
+  }
+  .field input[type=text]{
+    width:100%;padding:7px 9px;
+    border:1px solid var(--accent-deep);border-radius:4px;
+    background:#fff;font-family:'Tinos',serif;font-size:15px;color:var(--ink);
+  }
+  .field input[type=range]{width:100%;accent-color:var(--accent);}
+  .row{display:flex;justify-content:space-between;font-size:12px;color:#9a4a72;}
+
+  .swatches{display:flex;gap:8px;flex-wrap:wrap;}
+  .swatch{
+    width:30px;height:30px;border-radius:50%;cursor:pointer;
+    border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);
+    transition:transform .1s;
+  }
+  .swatch:hover{transform:scale(1.15);}
+  .swatch.active{outline:2px solid var(--ink);outline-offset:2px;}
+  .custom-color{display:flex;align-items:center;gap:8px;}
+  .custom-color input[type=color]{
+    width:42px;height:30px;border:1px solid var(--accent-deep);
+    border-radius:4px;background:#fff;cursor:pointer;padding:2px;
+  }
+
+  .effects{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{
+    font-family:'VT323',monospace;font-size:15px;
+    padding:3px 10px;border-radius:14px;cursor:pointer;
+    border:1px solid var(--accent-deep);
+    background:#fff;color:var(--accent-deep);
+    transition:.12s;
+  }
+  .chip.active{background:var(--accent);color:#fff;}
+
+  .actbtn{
+    width:100%;padding:9px;
+    font-family:'VT323',monospace;font-size:18px;letter-spacing:1px;
+    border:1px solid var(--accent-deep);border-radius:5px;
+    background:linear-gradient(180deg,#fff,var(--glass));
+    color:var(--accent-deep);cursor:pointer;
+    transition:.12s;
+  }
+  .actbtn:hover{box-shadow:0 0 12px var(--accent);}
+  .actbtn.primary{
+    background:linear-gradient(180deg,var(--accent),var(--accent-deep));
+    color:#fff;
+  }
+  .btn-row{display:flex;gap:8px;}
+  .btn-row .actbtn{font-size:15px;}
+
+  .hint{font-size:11px;color:#9a4a72;line-height:1.4;}
+
+  @media(max-width:560px){
+    .page-title{font-size:24px;}
+    .menubar{gap:11px;font-size:13px;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-title">
+    ★ Y2K MEDIA PLAYER CAM ★
+    <small>now playing&nbsp;:&nbsp;you</small>
+  </div>
+
+  <div class="layout">
+
+    <!-- ===== THE PLAYER ===== -->
+    <div class="player">
+      <div class="titlebar">
+        <div class="orb"></div>
+        <div class="title" id="winTitle">Windows Media Player</div>
+        <div class="winbtns"><span>_</span><span>▢</span><span>✕</span></div>
+      </div>
+      <div class="menubar">
+        <span><u>F</u>ile</span><span><u>V</u>iew</span><span><u>P</u>lay</span>
+        <span><u>T</u>ools</span><span><u>H</u>elp</span>
+      </div>
+
+      <div class="screen-wrap">
+        <div class="screen">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="snap"></canvas>
+          <div class="filter-overlay" id="vignette"></div>
+          <div class="grain"></div>
+          <div class="caption" id="caption">say cheese ♥</div>
+        </div>
+      </div>
+
+      <div class="statusbar" id="status">Ready</div>
+
+      <div class="transport">
+        <button class="tbtn big" id="shoot" title="Take photo">▶</button>
+        <button class="tbtn sm" id="retake" title="Back to live">⏹</button>
+        <button class="tbtn sm" title="Previous">⏮</button>
+        <button class="tbtn sm" title="Next">⏭</button>
+        <div class="seek"></div>
+      </div>
+    </div>
+
+    <!-- ===== CONTROL PANEL ===== -->
+    <div class="panel">
+      <h2>✎ customize</h2>
+      <div class="body">
+
+        <div class="field">
+          <label>Window title</label>
+          <input type="text" id="titleInput" value="Windows Media Player" maxlength="40">
+        </div>
+
+        <div class="field">
+          <label>Caption text</label>
+          <input type="text" id="captionInput" value="say cheese ♥" maxlength="40">
+        </div>
+
+        <div class="field">
+          <label>Theme color</label>
+          <div class="swatches" id="swatches"></div>
+          <div class="custom-color">
+            <input type="color" id="colorPick" value="#e8489a">
+            <span class="hint">pick any shade you like</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Photo effect</label>
+          <div class="effects" id="effects"></div>
+        </div>
+
+        <div class="field">
+          <label>Warmth <span id="warmthVal" style="float:right">100%</span></label>
+          <input type="range" id="warmth" min="50" max="160" value="100">
+        </div>
+        <div class="field">
+          <label>Contrast <span id="contrastVal" style="float:right">110%</span></label>
+          <input type="range" id="contrast" min="60" max="180" value="110">
+        </div>
+        <div class="field">
+          <label>Glow / fade <span id="fadeVal" style="float:right">40%</span></label>
+          <input type="range" id="fade" min="0" max="100" value="40">
+        </div>
+        <div class="field">
+          <label>Grain <span id="grainVal" style="float:right">18%</span></label>
+          <input type="range" id="grainAmt" min="0" max="60" value="18">
+        </div>
+
+        <button class="actbtn primary" id="shoot2">★ TAKE PHOTO ★</button>
+        <div class="btn-row">
+          <button class="actbtn" id="download">↓ save</button>
+          <button class="actbtn" id="retake2">↺ retake</button>
+        </div>
+
+        <p class="hint">Allow camera access when your browser asks. Photos are processed entirely on your device — nothing is uploaded.</p>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+(function(){
+  const video    = document.getElementById('video');
+  const snap     = document.getElementById('snap');
+  const ctx      = snap.getContext('2d');
+  const status   = document.getElementById('status');
+  const caption  = document.getElementById('caption');
+  const vignette = document.getElementById('vignette');
+  const grainEl  = document.querySelector('.grain');
+  const root     = document.documentElement;
+
+  /* ---- state ---- */
+  const fx = {
+    warmth:100, contrast:110, fade:40, grain:18,
+    effect:'retro', captured:false
+  };
+
+  /* the look from the reference picture: warm, soft, slightly faded,
+     pink-tinted shadows, vignette + grain. lives as a CSS filter string */
+  const presets = {
+    retro:  () => `sepia(.28) saturate(${fx.warmth*1.25}%) contrast(${fx.contrast}%) brightness(1.05) hue-rotate(-8deg)`,
+    none:   () => `saturate(${fx.warmth}%) contrast(${fx.contrast}%)`,
+    bw:     () => `grayscale(1) contrast(${fx.contrast*1.05}%) brightness(1.08)`,
+    cool:   () => `saturate(${fx.warmth}%) contrast(${fx.contrast}%) hue-rotate(160deg) brightness(1.04)`,
+    bubble: () => `saturate(${fx.warmth*1.6}%) contrast(${fx.contrast*0.95}%) brightness(1.12) hue-rotate(-15deg)`,
+    dream:  () => `sepia(.15) saturate(${fx.warmth*1.1}%) contrast(${fx.contrast*0.9}%) brightness(1.1) blur(.4px)`,
+    night:  () => `saturate(${fx.warmth*0.8}%) contrast(${fx.contrast*1.2}%) brightness(.88) hue-rotate(-20deg)`
+  };
+
+  function applyLook(){
+    const f = (presets[fx.effect]||presets.retro)();
+    video.style.filter = f;
+    snap.style.filter  = f;
+    vignette.style.opacity = (fx.fade/100).toFixed(2);
+    grainEl.style.opacity  = (fx.grain/100).toFixed(2);
+  }
+
+  /* ---- camera ---- */
+  async function startCam(){
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video:{ facingMode:'user', width:{ideal:1280}, height:{ideal:960} },
+        audio:false
+      });
+      video.srcObject = stream;
+      status.textContent = 'Ready  ►  live';
+    }catch(err){
+      status.textContent = 'No camera — check permissions';
+      caption.textContent = 'camera access needed';
+    }
+  }
+  startCam();
+
+  /* ---- take photo ---- */
+  function takePhoto(){
+    if(!video.videoWidth){ status.textContent='Camera not ready…'; return; }
+    snap.width  = video.videoWidth;
+    snap.height = video.videoHeight;
+    ctx.save();
+    ctx.translate(snap.width,0);  // un-mirror happens via CSS, draw normally
+    ctx.scale(-1,1);
+    ctx.filter = (presets[fx.effect]||presets.retro)();
+    ctx.drawImage(video,0,0,snap.width,snap.height);
+    ctx.restore();
+
+    // bake vignette
+    const g = ctx.createRadialGradient(
+      snap.width/2, snap.height*0.42, snap.height*0.2,
+      snap.width/2, snap.height*0.42, snap.height*0.85);
+    g.addColorStop(0,'rgba(0,0,0,0)');
+    g.addColorStop(1,`rgba(0,0,0,${(fx.fade/100*0.55).toFixed(2)})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,snap.width,snap.height);
+
+    // caption baked in
+    if(caption.textContent.trim()){
+      ctx.font = `${Math.round(snap.width/16)}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = getComputedStyle(root).getPropertyValue('--accent');
+      ctx.shadowBlur  = snap.width/40;
+      ctx.fillText(caption.textContent, snap.width/2, snap.height-snap.height/22);
+    }
+
+    snap.style.display = 'block';
+    fx.captured = true;
+    status.textContent = 'Photo captured  ●  press retake for live';
+  }
+
+  function retake(){
+    snap.style.display='none';
+    fx.captured=false;
+    status.textContent='Ready  ►  live';
+  }
+
+  function download(){
+    if(!fx.captured){ takePhoto(); }
+    const a=document.createElement('a');
+    a.download='y2k-cam-'+Date.now()+'.png';
+    a.href=snap.toDataURL('image/png');
+    a.click();
+    status.textContent='Saved ♥';
+  }
+
+  /* ---- controls wiring ---- */
+  document.getElementById('shoot').onclick   = takePhoto;
+  document.getElementById('shoot2').onclick  = takePhoto;
+  document.getElementById('retake').onclick  = retake;
+  document.getElementById('retake2').onclick = retake;
+  document.getElementById('download').onclick= download;
+
+  document.getElementById('titleInput').oninput = e=>{
+    document.getElementById('winTitle').textContent = e.target.value || ' ';
+  };
+  document.getElementById('captionInput').oninput = e=>{
+    caption.textContent = e.target.value;
+  };
+
+  function bindSlider(id,key,suffix,labelId){
+    const el=document.getElementById(id);
+    el.oninput=()=>{
+      fx[key]=+el.value;
+      document.getElementById(labelId).textContent=el.value+suffix;
+      applyLook();
+    };
+  }
+  bindSlider('warmth','warmth','%','warmthVal');
+  bindSlider('contrast','contrast','%','contrastVal');
+  bindSlider('fade','fade','%','fadeVal');
+  bindSlider('grainAmt','grain','%','grainVal');
+
+  /* effect chips */
+  const effectList=[
+    ['retro','retro ♥'],['bubble','bubblegum'],['dream','dreamy'],
+    ['cool','frost'],['bw','noir'],['night','midnight'],['none','raw']
+  ];
+  const effectsBox=document.getElementById('effects');
+  effectList.forEach(([key,label])=>{
+    const c=document.createElement('div');
+    c.className='chip'+(key===fx.effect?' active':'');
+    c.textContent=label;
+    c.onclick=()=>{
+      fx.effect=key;
+      [...effectsBox.children].forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+      applyLook();
+    };
+    effectsBox.appendChild(c);
+  });
+
+  /* color theme */
+  function setTheme(hex){
+    // derive a deep + light shade from the chosen hue
+    const c=hex.replace('#','');
+    const r=parseInt(c.substr(0,2),16),
+          g=parseInt(c.substr(2,2),16),
+          b=parseInt(c.substr(4,2),16);
+    const mix=(a,t)=>Math.round(a+(t-a)*0.55);
+    const deep=`rgb(${Math.round(r*.6)},${Math.round(g*.6)},${Math.round(b*.6)})`;
+    const light=`rgb(${mix(r,255)},${mix(g,255)},${mix(b,255)})`;
+    const chrome=`rgb(${Math.round(r+ (255-r)*.82)},${Math.round(g+(255-g)*.82)},${Math.round(b+(255-b)*.82)})`;
+    root.style.setProperty('--accent',hex);
+    root.style.setProperty('--accent-deep',deep);
+    root.style.setProperty('--accent-light',light);
+    root.style.setProperty('--chrome',chrome);
+    root.style.setProperty('--glass',light);
+  }
+  const swatchColors=['#e8489a','#9b5de5','#00bbf9','#43c59e','#ff8c42','#ff5d8f','#3a3a55'];
+  const swBox=document.getElementById('swatches');
+  swatchColors.forEach((hex,i)=>{
+    const s=document.createElement('div');
+    s.className='swatch'+(i===0?' active':'');
+    s.style.background=hex;
+    s.onclick=()=>{
+      setTheme(hex);
+      document.getElementById('colorPick').value=hex;
+      [...swBox.children].forEach(x=>x.classList.remove('active'));
+      s.classList.add('active');
+    };
+    swBox.appendChild(s);
+  });
+  document.getElementById('colorPick').oninput=e=>{
+    setTheme(e.target.value);
+    [...swBox.children].forEach(x=>x.classList.remove('active'));
+  };
+
+  applyLook();
+})();
+</script>
+</body>
+</html>
